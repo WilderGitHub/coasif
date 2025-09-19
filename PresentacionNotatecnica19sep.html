@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Madurez Digital del Sistema de Pagos de Bolivia (2020-2025)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: Se diseñó una estructura de dashboard en una sola página con navegación superior fija para facilitar el acceso a las secciones. El flujo guía al usuario desde una visión panorámica (Dashboard Total), pasando por el contexto histórico (Evolución), la explicación del modelo (Metodología), hasta el núcleo interactivo (Resultados Unificados). Finalmente, se presentan las Conclusiones. Esta estructura prioriza la comprensión rápida y la exploración dirigida. -->
+    <!-- Visualization & Content Choices: 1. Dashboard Total: Tarjetas de KPI para impacto inmediato. 2. Evolución de Pagos: Gráfico combinado de barras y línea para mostrar crecimiento. 3. Composición de Pagos: Gráfico de área apilada para mostrar cambios en hábitos. 4. Ranking Unificado: Dashboard de barras horizontales con múltiples filtros (dimensión, tipo, indicador) para un análisis detallado y comparativo. La interacción de clic en la barra revela un panel con el desglose completo de la entidad seleccionada. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #005B96;
+            border-bottom-color: #005B96;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0; /* slate-200 */
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        /* Estilos para el nuevo dashboard de ranking */
+        .btn-filter, .btn-dimension-filter {
+            transition: all 0.2s ease-in-out;
+        }
+        .ranking-chart-container {
+            position: relative;
+            height: 75vh;
+            width: 100%;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .detail-panel-content {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- BCB Logo -->
+                <div class="flex-shrink-0">
+                      <!-- ESTO LE HE CAMBIADO OE -->
+
+			 <img src="https://raw.githubusercontent.com/WilderGitHub/coasif/main/logoppt.svg" width="500">
+
+                </div>
+                <!-- BICENTENARIO Invest Logo -->
+                <div class="flex-shrink-0">
+                      <img src="https://raw.githubusercontent.com/WilderGitHub/coasif/refs/heads/main/2025bicentenario.svg" width="400">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="hero" class="text-center mb-16">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-4">Evaluación de la Madurez Digital del Sistema Financiero Boliviano</h1>
+            <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">Un análisis interactivo del período 2020-2025, explorando el crecimiento, las estrategias y la brecha digital en el sector financiero del país.</p>
+        </section>
+        
+        <section id="evolucion" class="mb-20 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">El Panorama General: Un Crecimiento Exponencial</h3>
+                <p class="mt-2 text-lg text-slate-600 max-w-3xl mx-auto">Entre 2020 y 2025, Bolivia vivió una transformación digital acelerada. La interoperabilidad se convirtió en el pilar que masificó el uso de pagos electrónicos, cambiando los hábitos de consumo.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                <div class="card p-6 rounded-xl">
+                    <h4 class="text-xl font-semibold text-center mb-4">Evolución de Pagos Digitales (2020-2025)</h4>
+                    <p class="text-sm text-center text-gray-500 mb-4">Crecimiento en valor (millones de Bs) y volumen (millones de transacciones).</p>
+                    <div class="chart-container">
+                        <canvas id="evolucionPagosChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-6 rounded-xl">
+                    <h4 class="text-xl font-semibold text-center mb-4">Composición por Instrumento de Pago</h4>
+                    <p class="text-sm text-center text-gray-500 mb-4">El crecimiento fue liderado por las transferencias electrónicas, muchas vía QR.</p>
+                    <div class="chart-container">
+                        <canvas id="composicionPagosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="metodologia" class="mb-20 scroll-mt-20">
+             <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">¿Cómo se Mide la Madurez Digital?</h3>
+                <p class="mt-2 text-lg text-slate-600 max-w-3xl mx-auto">La evaluación se basa en el modelo de BID Invest, combinando métricas de uso y adopción con capacidades institucionales para una visión integral del desempeño de cada entidad.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="card p-6 text-center rounded-xl">
+                    <div class="text-4xl mb-3">👥</div>
+                    <h4 class="text-lg font-semibold mb-2">Dimensión Cuantitativa</h4>
+                    <p class="text-sm text-gray-600">Mide intensidad, penetración y adopción. <span class="font-bold block mt-2">Ponderación: 80%</span></p>
+                </div>
+                 <div class="card p-6 text-center col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-xl">
+                    <div class="text-center">
+                        <div class="text-4xl mb-3">💡</div>
+                        <h4 class="text-lg font-semibold mb-2">Productos Digitales</h4>
+                        <p class="text-sm text-gray-600">Oferta de QR, tarjetas virtuales, etc. <span class="font-bold block mt-2">5%</span></p>
+                    </div>
+                    <div class="text-center">
+                         <div class="text-4xl mb-3">⚙️</div>
+                        <h4 class="text-lg font-semibold mb-2">Tecnología</h4>
+                        <p class="text-sm text-gray-600">Uso de chatbots, scoring, etc. <span class="font-bold block mt-2">5%</span></p>
+                    </div>
+                    <div class="text-center">
+                         <div class="text-4xl mb-3">🌍</div>
+                        <h4 class="text-lg font-semibold mb-2">Inclusión</h4>
+                        <p class="text-sm text-gray-600">Educación financiera, alcance rural, etc. <span class="font-bold block mt-2">10%</span></p>
+                    </div>
+                    <p class="sm:col-span-3 text-center text-sm font-semibold text-gray-700 mt-2">Componentes de la Dimensión Cualitativa (Ponderación Total: 20%)</p>
+                </div>
+            </div>
+
+            <div class="mt-20">
+                <div class="text-center mb-12">
+                    <h4 class="text-2xl font-bold text-slate-800">Indicadores Cuantitativos Clave</h4>
+                    <p class="mt-2 text-md text-slate-600 max-w-2xl mx-auto">Para obtener un puntaje comparable entre entidades, se normalizaron los datos y se calcularon los siguientes indicadores de desempeño.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Normalización de Datos</h5>
+                        <p class="text-xs text-slate-500 mb-4">(Escalado Min-Max)</p>
+                        <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                            <div class="flex flex-col text-center text-sm">
+                                <span>Valor<sub class="ml-1">obs</sub> - Valor<sub class="ml-1">mín</sub></span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Valor<sub class="ml-1">máx</sub> - Valor<sub class="ml-1">mín</sub></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Intensidad de Uso (Valor)</h5>
+                        <p class="text-xs text-slate-500 mb-4">&nbsp;</p>
+                        <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                             <div class="flex flex-col text-center text-sm">
+                                <span>∑ (0.15*OETF + 0.05*Tarjetas + 0.05*Billeteras)</span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Saldo Depósitos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Intensidad de Uso (Volumen)</h5>
+                        <p class="text-xs text-slate-500 mb-4">&nbsp;</p>
+                        <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                             <div class="flex flex-col text-center text-sm">
+                                <span>∑ (0.15*Cant. OETF + 0.05*Cant. Tarjetas + 0.05*Cant. Billeteras)</span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Número de Cuentas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Grado de Penetración (OETF)</h5>
+                        <p class="text-xs text-slate-500 mb-4">&nbsp;</p>
+                         <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                             <div class="flex flex-col text-center text-sm">
+                                <span>∑ (0.10*Volumen OETF<sub class="ml-1">web/móvil</sub>)</span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Volumen Total OETF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Grado de Penetración (Tarjetas)</h5>
+                        <p class="text-xs text-slate-500 mb-4">&nbsp;</p>
+                        <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                             <div class="flex flex-col text-center text-sm">
+                                <span>0.05*Volumen Tarjetas<sub class="ml-1">no presenciales</sub></span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Volumen Total Tarjetas</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 text-center rounded-xl flex flex-col">
+                        <h5 class="font-semibold text-slate-600 mb-2">Adopción de Canales</h5>
+                        <p class="text-xs text-slate-500 mb-4">&nbsp;</p>
+                        <div class="bg-slate-50 rounded-lg p-4 font-mono text-slate-800 flex-grow flex items-center justify-center">
+                             <div class="flex flex-col text-center text-sm">
+                                <span>0.15*Usuarios<sub class="ml-1">banca</sub> + Usuarios<sub class="ml-1">billeteras</sub></span>
+                                <span class="border-t-2 border-slate-700 my-1"></span>
+                                <span>Número de Cuentas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="resultados" class="mb-20 scroll-mt-20">
+            <header class="mb-6 text-center">
+                <h1 class="text-3xl lg:text-4xl font-bold text-slate-900">Ranking de Madurez Digital</h1>
+                <p id="dashboard-subtitle" class="text-xl text-slate-600 mt-1">Dimensión Cuantitativa</p>
+            </header>
+    
+            <div class="mb-6 flex justify-center">
+                <div id="dimension-filter" class="flex bg-slate-200/70 p-1 rounded-lg shadow-inner">
+                    <button data-dimension="cuantitativa" class="btn-dimension-filter px-6 py-2 rounded-md text-sm font-semibold">Cuantitativa</button>
+                    <button data-dimension="cualitativa" class="btn-dimension-filter px-6 py-2 rounded-md text-sm font-semibold">Cualitativa</button>
+                </div>
+            </div>
+    
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <section class="lg:col-span-2 card p-6 rounded-xl">
+                    <h2 id="chart-title" class="text-xl font-semibold text-slate-800 mb-4">Ranking por Indicador Total</h2>
+                    <div class="ranking-chart-container">
+                        <canvas id="rankingChart"></canvas>
+                    </div>
+                </section>
+    
+                <div class="lg:col-span-1 flex flex-col gap-6">
+                    <section class="card p-6 rounded-xl flex flex-col items-center gap-8">
+                        <div class="w-full max-w-sm">
+                            <h2 class="text-xl font-semibold text-slate-800 mb-4 text-center">Tipo de Entidad</h2>
+                            <div id="type-filter" class="flex bg-slate-200/70 p-1 rounded-lg">
+                                <button data-type="Bancos" class="btn-filter flex-1 p-2 rounded-md text-sm font-semibold">Bancos</button>
+                                <button data-type="Otras EIF" class="btn-filter flex-1 p-2 rounded-md text-sm font-semibold">Otras EIF</button>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <h2 class="text-xl font-semibold text-slate-800 mb-4 text-center">Seleccionar Indicador</h2>
+                            <div id="indicator-filter" class="grid grid-cols-3 gap-2 text-center">
+                            </div>
+                        </div>
+                    </section>
+    
+                    <aside class="card p-6 rounded-xl">
+                        <div id="detail-panel" class="sticky top-6">
+                            <h2 class="text-xl font-semibold text-slate-800 mb-4">Resumen de Indicadores</h2>
+                            <div id="detail-content" class="text-slate-600">
+                                 <p class="text-center p-4 border-2 border-dashed rounded-lg">Haz clic en una barra del gráfico para ver el detalle de una entidad.</p>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusiones" class="scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">Hallazgos y Recomendaciones</h3>
+                 <p class="mt-2 text-lg text-slate-600 max-w-3xl mx-auto">El análisis revela un mercado que avanza a distintas velocidades, con estrategias de especialización y desafíos claros para el futuro.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card p-6 rounded-xl">
+                    <h4 class="font-semibold text-lg mb-2">Liderazgo por Especialización</h4>
+                    <p class="text-gray-600 text-sm">El éxito no es uniforme. Algunas entidades dominan por su masiva base de usuarios, mientras que otras lo hacen por la alta frecuencia de transacciones. El liderazgo se ha forjado en nichos específicos.</p>
+                </div>
+                <div class="card p-6 rounded-xl">
+                    <h4 class="font-semibold text-lg mb-2">Dos Modelos Estratégicos</h4>
+                    <p class="text-gray-600 text-sm">Los grandes bancos apuestan por la escala y el alcance masivo. En contraste, cooperativas y bancos PYME se enfocan en la proximidad, usando la educación financiera como su principal herramienta de expansión.</p>
+                </div>
+                <div class="card p-6 rounded-xl">
+                    <h4 class="font-semibold text-lg mb-2">Factores Críticos para el Futuro</h4>
+                    <p class="text-gray-600 text-sm">La educación sobre herramientas digitales y el fortalecimiento de la confianza en la ciberseguridad son cruciales para sostener el crecimiento y garantizar una transformación digital más equitativa e inclusiva.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-16 border-t">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+            <p>Gerencia de Entidades Financieras</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Chart.register(ChartDataLabels);
+
+            // --- DATA FOR EVOLUTION CHARTS ---
+            const evolutionData = {
+                evolucionPagos: {
+                    labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+                    valor: [415000, 420000, 600000, 750000, 850000, 1000000], 
+                    volumen: [125, 200, 240, 390, 830, 1100] 
+                },
+                composicionPagos: {
+                    labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+			tarjetas: [22, 32, 44, 46, 51, 41],                    
+			billetera: [22, 25, 29, 41, 134, 276],
+	                    transferencias: [20, 42, 61, 109, 212, 428],
+                    
+                }
+            };
+
+            // --- INIT EVOLUTION CHARTS ---
+            const ctxEvolucion = document.getElementById('evolucionPagosChart').getContext('2d');
+            new Chart(ctxEvolucion, {
+                type: 'bar',
+                data: {
+                    labels: evolutionData.evolucionPagos.labels,
+                    datasets: [{
+                        label: 'Volumen (Millones)',
+                        data: evolutionData.evolucionPagos.volumen,
+                        backgroundColor: 'rgba(0, 91, 150, 0.6)',
+                        borderColor: 'rgba(0, 91, 150, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Valor (Millones Bs)',
+                        data: evolutionData.evolucionPagos.valor,
+                        type: 'line',
+                        borderColor: '#F5A623',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Valor (Millones Bs)' }},
+                        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Volumen (Millones)' }, grid: { drawOnChartArea: false }}
+                    },
+                    plugins: { 
+                        tooltip: { mode: 'index', intersect: false },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+
+            const ctxComposicion = document.getElementById('composicionPagosChart').getContext('2d');
+            new Chart(ctxComposicion, {
+                type: 'line',
+                data: {
+                    labels: evolutionData.composicionPagos.labels,
+                    datasets: [
+                    { label: 'Tarjetas', data: evolutionData.composicionPagos.tarjetas, fill: true, backgroundColor: 'rgba(245, 166, 35, 0.5)', borderColor: 'rgba(245, 166, 35, 1)', tension: 0.3 },    
+                    { label: 'Billetera Móvil', data: evolutionData.composicionPagos.billetera, fill: true, backgroundColor: 'rgba(80, 227, 194, 0.5)', borderColor: 'rgba(80, 227, 194, 1)', tension: 0.3 },
+                        { label: 'Transferencias', data: evolutionData.composicionPagos.transferencias, fill: true, backgroundColor: 'rgba(0, 91, 150, 0.5)', borderColor: 'rgba(0, 91, 150, 1)', tension: 0.3 },
+                        
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        tooltip: { mode: 'index', intersect: false },
+                        datalabels: { display: false }
+                    },
+                    scales: { y: { stacked: true, title: { display: true, text: 'Millones de Transacciones' } } }
+                }
+            });
+
+
+            // --- LOGIC FOR THE NEW RANKING DASHBOARD ---
+            
+
+            const dataSources = {
+                cuantitativa: {
+                    Bancos: [
+                        { name: 'Banco de Crédito de Bolivia', type: 'Bancos', valor: 20, volumen: 18, usuarios: 15, tarjetas: 2, oetf: 10, total: 64 },
+                        { name: 'Banco Ganadero', type: 'Bancos', valor: 19, volumen: 19, usuarios: 4, tarjetas: 1, oetf: 10, total: 54 },
+                        { name: 'Banco Económico', type: 'Bancos', valor: 14, volumen: 15, usuarios: 1, tarjetas: 2, oetf: 10, total: 42 },
+                        { name: 'Banco Nacional de Bolivia', type: 'Bancos', valor: 13, volumen: 10, usuarios: 1, tarjetas: 2, oetf: 10, total: 36 },
+                        { name: 'Banco Bisa', type: 'Bancos', valor: 10, volumen: 8, usuarios: 1, tarjetas: 2, oetf: 10, total: 31 },
+                        { name: 'Banco Unión', type: 'Bancos', valor: 5, volumen: 4, usuarios: 7, tarjetas: 2, oetf: 10, total: 28 },
+                        { name: 'Banco Mercantil Santa Cruz', type: 'Bancos', valor: 6, volumen: 8, usuarios: 1, tarjetas: 2, oetf: 8, total: 25 },
+                        { name: 'Banco FIE', type: 'Bancos', valor: 5, volumen: 3, usuarios: 2, tarjetas: 5, oetf: 8, total: 23 },
+                        { name: 'Banco Solidario', type: 'Bancos', valor: 5, volumen: 4, usuarios: 1, tarjetas: 0, oetf: 10, total: 21 },
+                        { name: 'Banco Fortaleza', type: 'Bancos', valor: 5, volumen: 4, usuarios: 0, tarjetas: 3, oetf: 10, total: 19 },
+                        { name: 'Banco PYME Ecofuturo', type: 'Bancos', valor: 2, volumen: 1, usuarios: 0, tarjetas: 0, oetf: 10, total: 11 }
+                    ],
+                    'Otras EIF': [
+                        { name: 'Coop. Jesús Nazareno', type: 'Otras EIF', valor: 13, volumen: 20, usuarios: 10, tarjetas: 5, oetf: 10, total: 58 },
+                        { name: 'Coop. Comarapa', type: 'Otras EIF', valor: 15, volumen: 15, usuarios: 9, tarjetas: 0, oetf: 9, total: 53 },
+                        { name: 'FUBODE IFD', type: 'Otras EIF', valor: 1, volumen: 1, usuarios: 7, tarjetas: 0, oetf: 9, total: 24 },
+                        { name: 'DIACONIA IFD', type: 'Otras EIF', valor: 4, volumen: 4, usuarios: 7, tarjetas: 0, oetf: 9, total: 24 },
+                        { name: 'IDEPRO IFD', type: 'Otras EIF', valor: 2, volumen: 2, usuarios: 14, tarjetas: 0, oetf: 5, total: 23 },
+                        { name: 'Coop. San Martín de Porres', type: 'Otras EIF', valor: 1, volumen: 3, usuarios: 2, tarjetas: 0, oetf: 10, total: 17 },
+                        { name: 'Coop. Fátima', type: 'Otras EIF', valor: 1, volumen: 1, usuarios: 6, tarjetas: 0, oetf: 10, total: 16 },
+                        { name: 'La Promotora E.F.V.', type: 'Otras EIF', valor: 0, volumen: 1, usuarios: 1, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'PROMUJER IFD', type: 'Otras EIF', valor: 1, volumen: 1, usuarios: 1, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'La Primera E.F.V.', type: 'Otras EIF', valor: 0, volumen: 0, usuarios: 2, tarjetas: 2, oetf: 10, total: 12 },
+                        { name: 'Coop. La Sagrada Familia', type: 'Otras EIF', valor: 0, volumen: 0, usuarios: 1, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'Coop. Pio X', type: 'Otras EIF', valor: 0, volumen: 1, usuarios: 1, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'Coop. La Merced', type: 'Otras EIF', valor: 0, volumen: 1, usuarios: 0, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'Coop. Magisterio Rural de CH', type: 'Otras EIF', valor: 0, volumen: 1, usuarios: 1, tarjetas: 0, oetf: 10, total: 12 },
+                        { name: 'Coop. CACEF', type: 'Otras EIF', valor: 0, volumen: 0, usuarios: 1, tarjetas: 1, oetf: 10, total: 12 },
+                    ],
+                    indicators: [
+                        { key: 'total', label: 'Indicador Total' }, 
+                        { key: 'valor', label: 'Intensidad transaccional (Valor)' },
+                        { key: 'volumen', label: 'Intensidad transaccional (Volumen)' }, 
+                        { key: 'usuarios', label: 'Usuarios digitales' },
+                        { key: 'tarjetas', label: 'Penetración Digital Uso de Tarjetas No presenciales'}, 
+                        { key: 'oetf', label: 'Penetración Digital de OETF por Canales Digitales'}
+                    ],
+                    colors: { primary: '#3b82f6', primaryBg: '#3b82f6BF', highlightBg: 'bg-blue-100', highlightText: 'text-blue-800', activeButton: 'bg-blue-600' }
+                },
+                cualitativa: {
+                    Bancos: [
+                        { name: 'Banco Nacional de Bolivia', type: 'Bancos', inclusion: 10.0, productos: 3.0, tecnologia: 1.5, total: 14.5 },
+                        { name: 'Banco de Crédito de Bolivia', type: 'Bancos', inclusion: 7.4, productos: 3.0, tecnologia: 3.0, total: 13.4 },
+                        { name: 'Banco FIE', type: 'Bancos', inclusion: 5.6, productos: 3.0, tecnologia: 4.5, total: 13.1 },
+                        { name: 'Banco Ganadero', type: 'Bancos', inclusion: 7.0, productos: 3.0, tecnologia: 3.0, total: 13.0 },
+                        { name: 'Banco Económico', type: 'Bancos', inclusion: 6.5, productos: 4.5, tecnologia: 1.5, total: 12.5 },
+                        { name: 'Banco Mercantil Santa Cruz', type: 'Bancos', inclusion: 4.8, productos: 3.0, tecnologia: 4.5, total: 12.3 },
+                        { name: 'Banco Bisa', type: 'Bancos', inclusion: 8.5, productos: 1.5, tecnologia: 1.5, total: 11.5 },
+                        { name: 'Banco Solidario', type: 'Bancos', inclusion: 4.4, productos: 1.5, tecnologia: 1.5, total: 7.4 },
+                        { name: 'Banco Unión', type: 'Bancos', inclusion: 4.3, productos: 1.5, tecnologia: 1.5, total: 7.3 },
+                        { name: 'Banco PYME Ecofuturo', type: 'Bancos', inclusion: 4.1, productos: 1.5, tecnologia: 1.5, total: 7.1 },
+                        { name: 'Banco Fortaleza', type: 'Bancos', inclusion: 4.0, productos: 1.5, tecnologia: 1.5, total: 7.0 }
+                    ],
+                    'Otras EIF': [
+                        { name: 'Coop. Jesús Nazareno', type: 'Otras EIF', productos: 4.6, tecnologia: 3.3, inclusion: 4.6, total: 12.4 },
+                        { name: 'CAC Cacef', type: 'Otras EIF', productos: 5.9, tecnologia: 3.3, inclusion: 2.6, total: 11.7 },
+                        { name: 'CAC Fatima', type: 'Otras EIF', productos: 4.6, tecnologia: 2.0, inclusion: 3.9, total: 10.4 },
+                        { name: 'CAC Magisterio Chuquisaca', type: 'Otras EIF', productos: 6.5, tecnologia: 2.0, inclusion: 2.0, total: 10.4 },
+                        { name: 'IFD Fubode', type: 'Otras EIF', productos: 5.4, tecnologia: 2.0, inclusion: 2.0, total: 9.3 },
+                    ],
+                    indicators: [
+                        { key: 'total', label: 'Indicador Total' }, { key: 'productos', label: 'Productos Digitales' },
+                        { key: 'tecnologia', label: 'Tecnología y Automatización' }, { key: 'inclusion', label: 'Inclusión y Sostenibilidad' }
+                    ],
+                    colors: { primary: '#0d9488', primaryBg: '#0d9488BF', highlightBg: 'bg-teal-100', highlightText: 'text-teal-800', activeButton: 'bg-teal-600' }
+                }
+            };
+            
+            let selectedDimension = 'cuantitativa';
+            let selectedType = 'Bancos';
+            let selectedIndicator = 'total';
+            let selectedIndicatorLabel = 'Indicador Total';
+            let rankingChart;
+            let selectedBarIndex = null;
+            
+            const dimensionFilter = document.getElementById('dimension-filter');
+            const typeFilter = document.getElementById('type-filter');
+            const indicatorFilter = document.getElementById('indicator-filter');
+            const detailContent = document.getElementById('detail-content');
+            const chartTitle = document.getElementById('chart-title');
+            const dashboardSubtitle = document.getElementById('dashboard-subtitle');
+            const ctxRanking = document.getElementById('rankingChart').getContext('2d');
+
+            function renderChart() {
+                const currentData = dataSources[selectedDimension];
+                const currentColors = currentData.colors;
+                chartTitle.textContent = `Ranking por ${selectedIndicatorLabel}`;
+
+                const dataToShow = currentData[selectedType]
+                    .sort((a, b) => b[selectedIndicator] - a[selectedIndicator]);
+
+                const chartLabels = dataToShow.map(d => d.name);
+                const chartData = dataToShow.map(d => d[selectedIndicator]);
+
+                const backgroundColors = dataToShow.map((_, index) => index === selectedBarIndex ? '#f97316' : currentColors.primaryBg);
+                const borderColors = dataToShow.map((_, index) => index === selectedBarIndex ? '#f97316' : currentColors.primary);
+                
+                if (rankingChart) rankingChart.destroy();
+
+                const maxValue = Math.max(...chartData);
+
+                rankingChart = new Chart(ctxRanking, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: selectedIndicatorLabel,
+                            data: chartData,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 2,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                beginAtZero: true, 
+                                grid: { color: '#e2e8f0' }, 
+                                ticks: { color: '#475569', callback: value => value.toFixed(1) },
+                                max: maxValue > 0 ? maxValue * 1.18 : 10
+                            },
+                            y: { grid: { display: false }, ticks: { color: '#475569' } }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: context => `${context.dataset.label || ''}: ${context.parsed.x.toFixed(1)}`
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end', align: 'right', offset: 4, color: '#475569',
+                                font: { weight: '500' },
+                                formatter: value => value.toFixed(1)
+                            }
+                        },
+                        onClick: (event, elements) => {
+                            if (elements.length > 0) {
+                                const clickedIndex = elements[0].index;
+                                selectedBarIndex = selectedBarIndex === clickedIndex ? null : clickedIndex;
+                                renderDetailPanel(selectedBarIndex !== null ? dataToShow[clickedIndex] : null);
+                                rankingChart.data.datasets[0].backgroundColor = dataToShow.map((_, i) => i === selectedBarIndex ? '#f97316' : currentColors.primaryBg);
+                                rankingChart.data.datasets[0].borderColor = dataToShow.map((_, i) => i === selectedBarIndex ? '#f97316' : currentColors.primary);
+                                rankingChart.update();
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderDetailPanel(entityData) {
+                if (!entityData) {
+                    detailContent.innerHTML = `<p class="text-center p-4 border-2 border-dashed rounded-lg">Haz clic en una barra del gráfico para ver el detalle de una entidad.</p>`;
+                    return;
+                }
+                
+                const currentData = dataSources[selectedDimension];
+                const currentColors = currentData.colors;
+                const indicators = currentData.indicators;
+                
+                let contentHTML = `<div class="detail-panel-content space-y-4">
+                    <h3 class="text-lg font-bold text-slate-900 border-b pb-2">${entityData.name}</h3>
+                    <ul class="space-y-2">`;
+
+                indicators.forEach(indicator => {
+                    const value = entityData[indicator.key];
+                    const displayValue = (value !== undefined) ? value.toFixed(1) : 'N/A';
+                    const isTotal = indicator.key === 'total';
+                    const isSelectedInChart = indicator.key === selectedIndicator;
+
+                    let liClass = `flex justify-between items-center p-2 rounded-md transition-colors duration-200 ${isTotal ? 'text-lg' : 'text-sm'}`;
+                    if (isSelectedInChart) liClass += ` ${currentColors.highlightBg}`;
+                    
+                    const valueClass = isTotal ? 'font-bold text-slate-900' : 'font-semibold text-slate-800';
+                    const labelClass = isSelectedInChart ? `font-semibold ${currentColors.highlightText}` : 'text-slate-600';
+
+                    contentHTML += `<li class="${liClass}"><span class="${labelClass}">${indicator.label}</span><span class="${valueClass}">${displayValue}</span></li>`;
+                });
+
+                contentHTML += `</ul></div>`;
+                detailContent.innerHTML = contentHTML;
+            }
+
+            function updateIndicatorButtons() {
+                const currentIndicators = dataSources[selectedDimension].indicators;
+                indicatorFilter.innerHTML = '';
+                currentIndicators.forEach(indicator => {
+                    const button = document.createElement('button');
+                    button.dataset.indicator = indicator.key;
+                    button.dataset.label = indicator.label;
+                    button.className = 'btn-filter p-2 rounded-md text-sm font-semibold';
+                    
+                    let buttonText = indicator.label;
+                    switch(indicator.key) {
+                        case 'total': buttonText = 'Total'; break;
+                        case 'valor': buttonText = 'Valor'; break;
+                        case 'volumen': buttonText = 'Volumen'; break;
+                        case 'usuarios': buttonText = 'Usuarios'; break;
+                        case 'tarjetas': buttonText = 'Tarjetas'; break;
+                        case 'oetf': buttonText = 'OETF'; break;
+                        case 'productos': buttonText = 'Productos'; break;
+                        case 'tecnologia': buttonText = 'Tecnología'; break;
+                        case 'inclusion': buttonText = 'Inclusión'; break;
+                    }
+
+                    button.textContent = buttonText;
+                    button.addEventListener('click', () => {
+                        selectedIndicator = button.dataset.indicator;
+                        selectedIndicatorLabel = button.dataset.label;
+                        selectedBarIndex = null;
+                        renderChart();
+                        renderDetailPanel(null);
+                        updateIndicatorStyles();
+                    });
+                    indicatorFilter.appendChild(button);
+                });
+                updateIndicatorStyles();
+            }
+            
+            function updateAllStyles() {
+                const colors = dataSources[selectedDimension].colors;
+                dimensionFilter.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'bg-teal-600', 'text-white');
+                    btn.classList.add('bg-slate-200', 'text-slate-600');
+                    if (btn.dataset.dimension === selectedDimension) {
+                        btn.classList.add(colors.activeButton, 'text-white');
+                        btn.classList.remove('bg-slate-200', 'text-slate-600');
+                    }
+                });
+
+                typeFilter.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'bg-teal-600', 'text-white');
+                    btn.classList.add('bg-slate-200', 'text-slate-600');
+                    if (btn.dataset.type === selectedType) {
+                        btn.classList.add(colors.activeButton, 'text-white');
+                        btn.classList.remove('bg-slate-200', 'text-slate-600');
+                    }
+                });
+                updateIndicatorStyles();
+            }
+            
+            function updateIndicatorStyles() {
+                 const colors = dataSources[selectedDimension].colors;
+                 indicatorFilter.querySelectorAll('button').forEach(btn => {
+                     btn.classList.remove('bg-blue-600', 'bg-teal-600', 'text-white');
+                     btn.classList.add('bg-slate-200', 'text-slate-600');
+                     if (btn.dataset.indicator === selectedIndicator) {
+                         btn.classList.add(colors.activeButton, 'text-white');
+                         btn.classList.remove('bg-slate-200', 'text-slate-600');
+                     }
+                 });
+            }
+
+            function initRankingDashboard() {
+                dimensionFilter.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        selectedDimension = button.dataset.dimension;
+                        dashboardSubtitle.textContent = `Dimensión ${selectedDimension.charAt(0).toUpperCase() + selectedDimension.slice(1)}`;
+                        selectedIndicator = 'total';
+                        selectedIndicatorLabel = 'Indicador Total';
+                        selectedBarIndex = null;
+                        updateIndicatorButtons();
+                        renderChart();
+                        renderDetailPanel(null);
+                        updateAllStyles();
+                    });
+                });
+                
+                typeFilter.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        selectedType = button.dataset.type;
+                        selectedBarIndex = null;
+                        renderChart();
+                        renderDetailPanel(null);
+                        updateAllStyles();
+                    });
+                });
+                
+                updateIndicatorButtons();
+                renderChart();
+                updateAllStyles();
+            }
+
+            initRankingDashboard();
+
+            // --- NAVIGATION OBSERVER ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main > section[id]');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: '-40% 0px -60% 0px' });
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</body>
+</html>
+
